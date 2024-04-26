@@ -29,6 +29,12 @@ Sub RunMailMerge()
     ' Specify the type of mail merge document
     wordDoc.MailMerge.MainDocumentType = wdFormLetters
 
+    ' Set formatting for the "Acct Rec $" Column
+    With .Fields("Acct Receible $")
+        .NumberFormat = "#,##0.00"
+        .PreseveFormatting = True
+    End With
+
     ' Set the mail merge data source
     wordDoc.MailMerge.OpenDataSource Name:=dataPath, SQLStatement:="SELECT * FROM [Letter to be Sent$]"
     
