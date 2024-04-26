@@ -1,1 +1,60 @@
 
+Sub RunMailMerge()
+    Dim wordApp As Object
+    Dim wordDoc As Object
+    Dim mergedDoc As Object
+    Dim dataPath As String
+    Dim templatePath As String
+    Dim outputPath As String
+    Dim recordCount As Integer
+    Dim currentPrinter As String
+    Dim pdfFileName As String
+    Dim i As Integer
+    ' Set the path to your Word template (template.docx)
+    templatePath = "C:\filepath\name.docx"
+    dataPath = "C:\filepath\source.xlsm"
+    
+    ' Set the path where you want to save the merged files
+    outputPath = "C:\filepath\test\"
+
+    ' Create a new instance of Word
+    Set wordApp = CreateObject("Word.Application")
+
+    ' Make Word visible
+    wordApp.Visible = True
+
+    ' Open the template as a new document
+    Set wordDoc = wordApp.Documents.Add(Template:=templatePath, NewTemplate:=False, DocumentType:=0)
+
+    ' Specify the type of mail merge document
+    wordDoc.MailMerge.MainDocumentType = wdFormLetters
+
+    ' Set the mail merge data source
+    wordDoc.MailMerge.OpenDataSource Name:=dataPath, SQLStatement:="SELECT * FROM [Letter to be Sent$]"
+    
+    ' Get the number of records in the data source
+    recordCount = wordDoc.MailMerge.DataSource.recordCount
+
+    ' Execute the mail merge
+    With wordDoc.MailMerge
+        .Destination = wdSendToNewDocument
+        .SuppressBlankLines = True
+        
+        For i = 1 To recordCount
+            .DataSource.FirstRecord = i
+            .DataSource.LastRecord = i
+            .Execute Pause:=False
+            
+            ' Save the active document (the merged document) as PDF
+            Set mergedDoc = wordApp.ActiveDocument
+            pdfFileName = outputPath & "MergedDocument" & i & ".pdf"
+            mergedDoc.SaveAs2 Filename:=pdfFileName, FileFormat:=wdFormatPDF
+            mergedDoc.Close False
+        Next i
+    End With
+    ' Close the template document without saving changes
+    wordDoc.Close False
+    
+    ' Show the results
+    wordApp.Visible = True
+End Sub
